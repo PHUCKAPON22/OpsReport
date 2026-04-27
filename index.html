@@ -3,115 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WanderSiam Automation ROI Dashboard</title>
+    <title>WanderSiam Ops & AI Utilization Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', 'Prompt', sans-serif; background-color: #f1f5f9; }
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .bg-case { background-color: #dbeafe; color: #1e40af; }
+        .bg-round { background-color: #fef3c7; color: #92400e; }
+        .bg-overflow { background-color: #fee2e2; color: #b91c1c; }
+        .bg-time { background-color: #d1fae5; color: #065f46; }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-slate-800">WanderSiam Automation ROI</h1>
-            <p class="text-slate-500">คำนวณมูลค่าความประหยัดจากระบบ AI & Automation</p>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-bold text-slate-800">WanderSiam: Ops Utilization & ROI</h1>
+            <p class="text-slate-500">ปรับตัวแปรสีม่วงเพื่อดูผลกระทบแบบ Real-time</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="card p-4">
-                <label class="block text-sm font-medium text-slate-600">เงินเดือนเฉลี่ย (บาท)</label>
-                <input type="number" id="salary" value="23000" class="w-full mt-1 border-slate-200 rounded-md p-2 bg-slate-50" oninput="calculateAll()">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="card p-4 border-l-4 border-indigo-500 bg-indigo-50">
+                <label class="block text-sm font-bold text-indigo-800">1. ปริมาณงาน (Business)</label>
+                <div class="mt-2 text-sm">
+                    <label>ยอดจองทั้งหมด (เคส):</label>
+                    <input type="number" id="v_bookings" value="5739" class="w-full mt-1 border rounded p-1 mb-2" oninput="calculateAll()">
+                    <label>ค่าเฉลี่ย Booking/รอบ:</label>
+                    <input type="number" id="v_bookingPerRound" value="68.7" class="w-full mt-1 border rounded p-1" oninput="calculateAll()">
+                </div>
             </div>
-            <div class="card p-4">
-                <label class="block text-sm font-medium text-slate-600">วันทำงาน/เดือน</label>
-                <input type="number" id="workDays" value="26" class="w-full mt-1 border-slate-200 rounded-md p-2 bg-slate-50" oninput="calculateAll()">
+
+            <div class="card p-4 border-l-4 border-emerald-500 bg-emerald-50">
+                <label class="block text-sm font-bold text-emerald-800">2. ทีม Ops (Human)</label>
+                <div class="mt-2 text-sm">
+                    <label>จำนวนพนักงาน Ops (คน):</label>
+                    <input type="number" id="v_opsCount" value="1" class="w-full mt-1 border rounded p-1 mb-2" oninput="calculateAll()">
+                    <label>วันทำงานรวมในเดือน:</label>
+                    <input type="number" id="v_days" value="30" class="w-full mt-1 border rounded p-1" oninput="calculateAll()">
+                </div>
             </div>
-            <div class="card p-4">
-                <label class="block text-sm font-medium text-slate-600">ชั่วโมงทำงาน/วัน</label>
-                <input type="number" id="workHours" value="8" class="w-full mt-1 border-slate-200 rounded-md p-2 bg-slate-50" oninput="calculateAll()">
+            
+            <div class="card p-4 border-l-4 border-emerald-500 bg-emerald-50">
+                <label class="block text-sm font-bold text-emerald-800">3. ต้นทุน (Cost)</label>
+                <div class="mt-2 text-sm">
+                    <label>เงินเดือนเฉลี่ย (บาท):</label>
+                    <input type="number" id="v_salary" value="23000" class="w-full mt-1 border rounded p-1 mb-2" oninput="calculateAll()">
+                    <label>ชั่วโมงทำงาน/วัน:</label>
+                    <input type="number" id="v_hours" value="8" class="w-full mt-1 border rounded p-1" oninput="calculateAll()">
+                </div>
             </div>
-            <div class="card p-4 bg-indigo-600 text-white">
-                <label class="block text-sm font-medium opacity-80">ยอดจองทั้งหมด (เคส)</label>
-                <input type="number" id="totalBookings" value="5739" class="w-full mt-1 bg-indigo-500 border-none rounded-md p-2 text-white placeholder-indigo-300" oninput="calculateAll()">
+
+            <div class="card p-4 border-l-4 border-orange-500 bg-orange-50">
+                <label class="block text-sm font-bold text-orange-800">4. Capacity ไกด์</label>
+                <div class="mt-2 text-sm">
+                    <label>จำนวนไกด์ในมือ (คน):</label>
+                    <input type="number" id="v_guides" value="30" class="w-full mt-1 border rounded p-1 mb-2" oninput="calculateAll()">
+                    <label>รับงานได้ (รอบ/คน/วัน):</label>
+                    <input type="number" id="v_guideCap" value="2.5" class="w-full mt-1 border rounded p-1" oninput="calculateAll()">
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
-            <div class="card p-6 border-t-4 border-green-500">
-                <p class="text-slate-500 text-sm uppercase font-bold">ประหยัดเงินได้รวม</p>
-                <h2 id="totalMoneySaved" class="text-4xl font-black text-green-600 mt-2">฿0</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-center">
+            <div class="card p-4">
+                <p class="text-slate-500 text-xs font-bold uppercase">จำนวนรอบทั้งหมด (เดือน)</p>
+                <h2 id="out_totalRounds" class="text-2xl font-black text-slate-700 mt-1">0</h2>
+                <p class="text-xs text-red-500 mt-1" id="out_overflowInfo">ล้น 0 รอบ/วัน</p>
             </div>
-            <div class="card p-6 border-t-4 border-blue-500">
-                <p class="text-slate-500 text-sm uppercase font-bold">ประหยัดเวลาได้รวม</p>
-                <h2 id="totalHoursSaved" class="text-4xl font-black text-blue-600 mt-2">0 ชม.</h2>
+            <div class="card p-4 bg-green-500 text-white">
+                <p class="text-green-100 text-xs font-bold uppercase">ประหยัดเงินจาก AI</p>
+                <h2 id="out_moneySaved" class="text-2xl font-black mt-1">฿0</h2>
             </div>
-            <div class="card p-6 border-t-4 border-orange-500">
-                <p class="text-slate-500 text-sm uppercase font-bold text-center">ทำงานแทนคนได้</p>
-                <h2 id="totalFTE" class="text-4xl font-black text-orange-600 mt-2 text-center">0.0 คน</h2>
+            <div class="card p-4 bg-blue-500 text-white">
+                <p class="text-blue-100 text-xs font-bold uppercase">ลดเวลาทำงาน (FTE)</p>
+                <h2 id="out_fteSaved" class="text-2xl font-black mt-1">0.00 คน</h2>
+            </div>
+            <div class="card p-4 border-2 border-slate-800">
+                <p class="text-slate-600 text-xs font-bold uppercase">Ops Utilization (ภาระงาน)</p>
+                <h2 id="out_utilization" class="text-3xl font-black text-slate-800 mt-1">0%</h2>
             </div>
         </div>
 
-        <div class="card overflow-hidden">
-            <table class="w-full text-left border-collapse">
+        <div class="card overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse whitespace-nowrap">
                 <thead class="bg-slate-800 text-white">
                     <tr>
-                        <th class="p-4">รายการงาน</th>
-                        <th class="p-4 text-center">เวลาฐาน (นาที)</th>
-                        <th class="p-4 text-center">AI ช่วย (%)</th>
-                        <th class="p-4 text-right">ประหยัดได้ (นาที)</th>
+                        <th class="p-3">รายการงาน (Tasks)</th>
+                        <th class="p-3">หน่วย (Unit)</th>
+                        <th class="p-3 text-center">เวลาฐาน<br>(นาที/หน่วย)</th>
+                        <th class="p-3 text-center">ปริมาณงาน<br>(Vol.)</th>
+                        <th class="p-3 text-center bg-indigo-600">AI ทำ (%)</th>
+                        <th class="p-3 text-right bg-green-600/20 text-green-300">เวลาที่ AI ช่วย<br>(นาที)</th>
+                        <th class="p-3 text-right bg-orange-600/20 text-orange-300">Ops ทำจริง<br>(นาที)</th>
                     </tr>
                 </thead>
-                <tbody id="taskBody" class="divide-y divide-slate-100">
+                <tbody id="taskBody" class="divide-y divide-slate-200">
                     </tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // Master Task List
         const tasks = [
-            { name: "เช็คเมล & คัดกรอง", baseTime: 2, aiPercent: 95 },
-            { name: "ลง Booking เข้าระบบ", baseTime: 5, aiPercent: 90 },
-            { name: "นัดเวลารับ-ส่ง (ทัวร์)", baseTime: 7, aiPercent: 10 },
-            { name: "รวบรวมข้อมูลลง Sheet", baseTime: 3, aiPercent: 100 }
+            { name: "เช็คเมลล์ (อ่าน + คัดกรอง)", unitType: "case", baseTime: 2, aiPercent: 100 },
+            { name: "ลง Booking (จัดลงรอบ)", unitType: "case", baseTime: 3, aiPercent: 90 },
+            { name: "คอนเฟิร์มทัวร์", unitType: "case", baseTime: 3, aiPercent: 100 },
+            { name: "นัดเวลารับ-ส่ง (ทัวร์)", unitType: "case", baseTime: 7, aiPercent: 90 },
+            { name: "เตรียมใบงานพรุ่งนี้", unitType: "case", baseTime: 3, aiPercent: 100 },
+            { name: "ตามลูกค้า (มาช้า)", unitType: "case", baseTime: 5, aiPercent: 50 },
+            { name: "ตอบแชท/จัดการไกด์", unitType: "case", baseTime: 8, aiPercent: 50 },
+            { name: "จองตุ๊กตุ๊ก", unitType: "case", baseTime: 5, aiPercent: 90 },
+            { name: "ตอบเมลล์ยาว/เสนอราคา", unitType: "case", baseTime: 5, aiPercent: 30 },
+            { name: "โทรหาลูกค้า (แก้ปัญหา)", unitType: "case", baseTime: 4, aiPercent: 10 },
+            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", baseTime: 10, aiPercent: 100 },
+            { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", baseTime: 30, aiPercent: 50 },
+            { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", baseTime: 30, aiPercent: 80 },
+            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", baseTime: 60, aiPercent: 100 }
         ];
 
-        function calculateAll() {
-            const salary = parseFloat(document.getElementById('salary').value) || 0;
-            const workDays = parseFloat(document.getElementById('workDays').value) || 1;
-            const workHours = parseFloat(document.getElementById('workHours').value) || 1;
-            const totalBookings = parseFloat(document.getElementById('totalBookings').value) || 0;
-            
-            const hourlyRate = salary / (workDays * workHours);
-            let totalMinsSaved = 0;
+        function getUnitBadge(type) {
+            if(type === 'case') return '<span class="badge bg-case">ต่อเคส</span>';
+            if(type === 'round') return '<span class="badge bg-round">ต่อรอบ</span>';
+            if(type === 'overflow') return '<span class="badge bg-overflow">ต่อรอบ(ส่วนเกิน)</span>';
+            if(type === 'day') return '<span class="badge bg-time">ต่อวัน</span>';
+            if(type === 'month') return '<span class="badge bg-time">ต่อเดือน</span>';
+            return type;
+        }
 
+        function calculateAll() {
+            // 1. Get Values
+            const bookings = parseFloat(document.getElementById('v_bookings').value) || 0;
+            const bookingPerRound = parseFloat(document.getElementById('v_bookingPerRound').value) || 68.7;
+            const opsCount = parseFloat(document.getElementById('v_opsCount').value) || 1;
+            const totalDays = parseFloat(document.getElementById('v_days').value) || 30;
+            const salary = parseFloat(document.getElementById('v_salary').value) || 0;
+            const workHours = parseFloat(document.getElementById('v_hours').value) || 8;
+            const guides = parseFloat(document.getElementById('v_guides').value) || 0;
+            const guideCap = parseFloat(document.getElementById('v_guideCap').value) || 0;
+
+            // 2. Global Calculations
+            const hourlyRate = salary / (26 * workHours); // HR standard 26 days
+            const totalRounds = bookings / bookingPerRound;
+            const dailyRounds = totalRounds / totalDays;
+            const maxCapacityPerDay = guides * guideCap;
+            const overflowPerDay = Math.max(0, dailyRounds - maxCapacityPerDay);
+            const totalOverflows = overflowPerDay * totalDays;
+
+            // Update Round Info
+            document.getElementById('out_totalRounds').innerText = Math.round(totalRounds).toLocaleString();
+            document.getElementById('out_overflowInfo').innerText = 
+                `ไกด์รับได้ ${maxCapacityPerDay} รอบ/วัน | ล้น ${overflowPerDay.toFixed(1)} รอบ/วัน`;
+
+            // 3. Process Tasks
+            let totalAISavedMins = 0;
+            let totalOpsMins = 0;
             const tbody = document.getElementById('taskBody');
             tbody.innerHTML = '';
 
             tasks.forEach((task, index) => {
-                const savedMins = (totalBookings * task.baseTime) * (task.aiPercent / 100);
-                totalMinsSaved += savedMins;
+                let volume = 0;
+                
+                // Determine Multiplier based on unit
+                if(task.unitType === 'case') volume = bookings;
+                else if(task.unitType === 'round') volume = totalRounds;
+                else if(task.unitType === 'overflow') volume = totalOverflows;
+                else if(task.unitType === 'day') volume = totalDays;
+                else if(task.unitType === 'month') volume = 1;
+
+                const totalTaskMins = volume * task.baseTime;
+                const savedMins = totalTaskMins * (task.aiPercent / 100);
+                const remainingMins = totalTaskMins - savedMins;
+
+                totalAISavedMins += savedMins;
+                totalOpsMins += remainingMins;
 
                 tbody.innerHTML += `
-                    <tr>
-                        <td class="p-4 font-medium">${task.name}</td>
-                        <td class="p-4 text-center">${task.baseTime}</td>
-                        <td class="p-4 text-center">
-                            <input type="number" value="${task.aiPercent}" 
-                                class="w-16 border rounded p-1 text-center" 
-                                oninput="tasks[${index}].aiPercent = this.value; calculateAll()"> %
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium text-slate-700">${task.name}</td>
+                        <td class="p-3">${getUnitBadge(task.unitType)}</td>
+                        <td class="p-3 text-center">
+                            <input type="number" value="${task.baseTime}" class="w-16 border rounded p-1 text-center" oninput="tasks[${index}].baseTime = this.value; calculateAll()">
                         </td>
-                        <td class="p-4 text-right text-green-600 font-bold">${Math.round(savedMins).toLocaleString()}</td>
+                        <td class="p-3 text-center font-bold">${Math.round(volume).toLocaleString()}</td>
+                        <td class="p-3 text-center bg-indigo-50">
+                            <input type="number" value="${task.aiPercent}" class="w-16 border rounded p-1 text-center text-indigo-700 font-bold" oninput="tasks[${index}].aiPercent = this.value; calculateAll()"> %
+                        </td>
+                        <td class="p-3 text-right text-green-600 font-bold">${Math.round(savedMins).toLocaleString()}</td>
+                        <td class="p-3 text-right text-orange-600 font-bold">${Math.round(remainingMins).toLocaleString()}</td>
                     </tr>
                 `;
             });
 
-            const totalHours = totalMinsSaved / 60;
-            const moneySaved = totalHours * hourlyRate;
-            const fte = totalHours / (workDays * workHours);
+            // 4. Summarize
+            const savedHours = totalAISavedMins / 60;
+            const moneySaved = savedHours * hourlyRate;
+            const fteSaved = savedHours / (totalDays * workHours); // Based on actual month days
 
-            document.getElementById('totalMoneySaved').innerText = '฿' + Math.round(moneySaved).toLocaleString();
-            document.getElementById('totalHoursSaved').innerText = Math.round(totalHours).toLocaleString() + ' ชม.';
-            document.getElementById('totalFTE').innerText = fte.toFixed(2) + ' คน';
+            // Calculate Ops Utilization
+            // Total capacity = number of ops * days * hours * 60 mins
+            const totalOpsCapacityMins = opsCount * totalDays * workHours * 60;
+            let utilization = (totalOpsMins / totalOpsCapacityMins) * 100;
+            if(!isFinite(utilization)) utilization = 0;
+
+            document.getElementById('out_moneySaved').innerText = '฿' + Math.round(moneySaved).toLocaleString();
+            document.getElementById('out_fteSaved').innerText = fteSaved.toFixed(2) + ' คน';
+            
+            const utilEl = document.getElementById('out_utilization');
+            utilEl.innerText = utilization.toFixed(1) + '%';
+            
+            // Color code utilization
+            if(utilization > 100) {
+                utilEl.className = "text-3xl font-black text-red-600 mt-1";
+                utilEl.innerText += ' (OVERLOAD!)';
+            } else if(utilization > 80) {
+                utilEl.className = "text-3xl font-black text-orange-500 mt-1";
+            } else {
+                utilEl.className = "text-3xl font-black text-green-600 mt-1";
+            }
         }
 
         window.onload = calculateAll;
