@@ -13,13 +13,14 @@
         .bg-round { background-color: #fef3c7; color: #92400e; }
         .bg-overflow { background-color: #fee2e2; color: #b91c1c; }
         .bg-time { background-color: #d1fae5; color: #065f46; }
+        input[type="number"] { font-weight: 600; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-7xl mx-auto">
         <header class="mb-8 border-b pb-4">
             <h1 class="text-3xl font-bold text-slate-800">WanderSiam: Ops Utilization & ROI</h1>
-            <p class="text-slate-500">ปรับตัวแปรด้านล่างเพื่อดูผลกระทบแบบ Real-time</p>
+            <p class="text-slate-500">ปรับตัวแปรด้านล่างเพื่อดูผลกระทบแบบ Real-time (V.3 - อัปเดตโอกาสเกิดงาน)</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -89,9 +90,10 @@
                 <thead class="bg-slate-800 text-white">
                     <tr>
                         <th class="p-3">รายการงาน (Tasks)</th>
-                        <th class="p-3">หน่วย (Unit)</th>
-                        <th class="p-3 text-center">เวลาฐาน<br>(นาที/หน่วย)</th>
-                        <th class="p-3 text-center">ปริมาณงาน<br>(Vol.)</th>
+                        <th class="p-3">หน่วย</th>
+                        <th class="p-3 text-center bg-rose-600">โอกาสเกิด (%)<br><span class="text-[10px] font-normal">เช่น มาช้าแค่ 5%</span></th>
+                        <th class="p-3 text-center">ปริมาณงาน<br>(หลังคูณ %)</th>
+                        <th class="p-3 text-center">เวลาฐาน<br>(นาที)</th>
                         <th class="p-3 text-center bg-indigo-600">AI ทำ (%)</th>
                         <th class="p-3 text-right bg-green-600/20 text-green-300">เวลาที่ AI ช่วย<br>(นาที)</th>
                         <th class="p-3 text-right bg-orange-600/20 text-orange-300">Ops ทำจริง<br>(นาที)</th>
@@ -104,22 +106,22 @@
     </div>
 
     <script>
-        // Master Task List
+        // Master Task List (อัปเดตตามที่พัคบอก)
         const tasks = [
-            { name: "เช็คเมลล์ (อ่าน + คัดกรอง)", unitType: "case", baseTime: 2, aiPercent: 100 },
-            { name: "ลง Booking (จัดลงรอบ)", unitType: "case", baseTime: 3, aiPercent: 90 },
-            { name: "คอนเฟิร์มทัวร์", unitType: "case", baseTime: 3, aiPercent: 100 },
-            { name: "นัดเวลารับ-ส่ง (ทัวร์)", unitType: "case", baseTime: 7, aiPercent: 90 },
-            { name: "เตรียมใบงานพรุ่งนี้", unitType: "case", baseTime: 3, aiPercent: 100 },
-            { name: "ตามลูกค้า (มาช้า)", unitType: "case", baseTime: 5, aiPercent: 50 },
-            { name: "ตอบแชท/จัดการไกด์", unitType: "case", baseTime: 8, aiPercent: 50 },
-            { name: "จองตุ๊กตุ๊ก", unitType: "case", baseTime: 5, aiPercent: 90 },
-            { name: "ตอบเมลล์ยาว/เสนอราคา", unitType: "case", baseTime: 5, aiPercent: 30 },
-            { name: "โทรหาลูกค้า (แก้ปัญหา)", unitType: "case", baseTime: 4, aiPercent: 10 },
-            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", baseTime: 10, aiPercent: 100 },
-            { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", baseTime: 30, aiPercent: 50 },
-            { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", baseTime: 30, aiPercent: 80 },
-            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", baseTime: 60, aiPercent: 100 }
+            { name: "เช็คเมลล์ (อ่าน + คัดกรอง)", unitType: "case", occurrence: 100, baseTime: 2, aiPercent: 100 },
+            { name: "ลง Booking (จัดลงรอบ)", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 90 },
+            { name: "คอนเฟิร์มทัวร์", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 100 },
+            { name: "นัดเวลารับ-ส่ง (ทัวร์)", unitType: "case", occurrence: 10, baseTime: 7, aiPercent: 90 },
+            { name: "เตรียมใบงานพรุ่งนี้", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 100 },
+            { name: "ตามลูกค้า (มาช้า)", unitType: "case", occurrence: 5, baseTime: 5, aiPercent: 50 },
+            { name: "ตอบแชท/จัดการไกด์", unitType: "round", occurrence: 100, baseTime: 8, aiPercent: 50 },
+            { name: "จองตุ๊กตุ๊ก", unitType: "round", occurrence: 100, baseTime: 5, aiPercent: 90 },
+            { name: "ตอบเมลล์ยาว/เสนอราคา", unitType: "case", occurrence: 4, baseTime: 5, aiPercent: 30 },
+            { name: "โทรหาลูกค้า (แก้ปัญหา)", unitType: "case", occurrence: 5, baseTime: 4, aiPercent: 10 },
+            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", occurrence: 100, baseTime: 10, aiPercent: 100 },
+            { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", occurrence: 100, baseTime: 30, aiPercent: 50 },
+            { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", occurrence: 100, baseTime: 30, aiPercent: 80 },
+            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 100 }
         ];
 
         function getUnitBadge(type) {
@@ -143,14 +145,13 @@
             const guideCap = parseFloat(document.getElementById('v_guideCap').value) || 0;
 
             // 2. Global Calculations
-            const hourlyRate = salary / (26 * workHours); // HR standard 26 days
+            const hourlyRate = salary / (26 * workHours); 
             const totalRounds = bookings / bookingPerRound;
             const dailyRounds = totalRounds / totalDays;
             const maxCapacityPerDay = guides * guideCap;
             const overflowPerDay = Math.max(0, dailyRounds - maxCapacityPerDay);
             const totalOverflows = overflowPerDay * totalDays;
 
-            // Update Round Info
             document.getElementById('out_totalRounds').innerText = Math.round(totalRounds).toLocaleString();
             document.getElementById('out_overflowInfo').innerText = 
                 `ไกด์รับได้ ${maxCapacityPerDay} รอบ/วัน | ล้น ${overflowPerDay.toFixed(1)} รอบ/วัน`;
@@ -162,16 +163,19 @@
             tbody.innerHTML = '';
 
             tasks.forEach((task, index) => {
-                let volume = 0;
+                let baseVolume = 0;
                 
-                // Determine Multiplier based on unit
-                if(task.unitType === 'case') volume = bookings;
-                else if(task.unitType === 'round') volume = totalRounds;
-                else if(task.unitType === 'overflow') volume = totalOverflows;
-                else if(task.unitType === 'day') volume = totalDays;
-                else if(task.unitType === 'month') volume = 1;
+                // กำหนดตัวตั้งต้นตามหน่วย
+                if(task.unitType === 'case') baseVolume = bookings;
+                else if(task.unitType === 'round') baseVolume = totalRounds;
+                else if(task.unitType === 'overflow') baseVolume = totalOverflows;
+                else if(task.unitType === 'day') baseVolume = totalDays;
+                else if(task.unitType === 'month') baseVolume = 1;
 
-                const totalTaskMins = volume * task.baseTime;
+                // หักลบด้วยเปอร์เซ็นต์โอกาสเกิด (Occurrence Rate) ที่มึงบอก
+                const actualVolume = baseVolume * (task.occurrence / 100);
+
+                const totalTaskMins = actualVolume * task.baseTime;
                 const savedMins = totalTaskMins * (task.aiPercent / 100);
                 const remainingMins = totalTaskMins - savedMins;
 
@@ -182,10 +186,13 @@
                     <tr class="hover:bg-slate-50">
                         <td class="p-3 font-medium text-slate-700">${task.name}</td>
                         <td class="p-3">${getUnitBadge(task.unitType)}</td>
+                        <td class="p-3 text-center bg-rose-50">
+                            <input type="number" value="${task.occurrence}" class="w-16 border rounded p-1 text-center text-rose-700" oninput="tasks[${index}].occurrence = this.value; calculateAll()"> %
+                        </td>
+                        <td class="p-3 text-center font-bold text-slate-500">${actualVolume.toFixed(1)}</td>
                         <td class="p-3 text-center">
                             <input type="number" value="${task.baseTime}" class="w-16 border rounded p-1 text-center" oninput="tasks[${index}].baseTime = this.value; calculateAll()">
                         </td>
-                        <td class="p-3 text-center font-bold">${Math.round(volume).toLocaleString()}</td>
                         <td class="p-3 text-center bg-indigo-50">
                             <input type="number" value="${task.aiPercent}" class="w-16 border rounded p-1 text-center text-indigo-700 font-bold" oninput="tasks[${index}].aiPercent = this.value; calculateAll()"> %
                         </td>
@@ -198,10 +205,8 @@
             // 4. Summarize
             const savedHours = totalAISavedMins / 60;
             const moneySaved = savedHours * hourlyRate;
-            const fteSaved = savedHours / (totalDays * workHours); // Based on actual month days
+            const fteSaved = savedHours / (totalDays * workHours); 
 
-            // Calculate Ops Utilization
-            // Total capacity = number of ops * days * hours * 60 mins
             const totalOpsCapacityMins = opsCount * totalDays * workHours * 60;
             let utilization = (totalOpsMins / totalOpsCapacityMins) * 100;
             if(!isFinite(utilization)) utilization = 0;
@@ -212,7 +217,6 @@
             const utilEl = document.getElementById('out_utilization');
             utilEl.innerText = utilization.toFixed(1) + '%';
             
-            // Color code utilization
             if(utilization > 100) {
                 utilEl.className = "text-3xl font-black text-red-600 mt-1";
                 utilEl.innerText += ' (OVERLOAD!)';
