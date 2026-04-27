@@ -20,7 +20,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-8 border-b pb-4">
             <h1 class="text-3xl font-bold text-slate-800">WanderSiam: Ops Utilization & ROI</h1>
-            <p class="text-slate-500">ปรับตัวแปรด้านล่างเพื่อดูผลกระทบแบบ Real-time (V.5 - แก้ AI Default & ตบสมการ Capacity)</p>
+            <p class="text-slate-500">ปรับตัวแปรด้านล่างเพื่อดูผลกระทบแบบ Real-time (V.6 - แก้สมการรอบรายวัน)</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -29,7 +29,7 @@
                 <div class="mt-2 text-sm">
                     <label>ยอดจองทั้งหมด (เคส):</label>
                     <input type="number" id="v_bookings" value="5739" class="w-full mt-1 border rounded p-1 mb-2" oninput="calculateAll()">
-                    <label>ตัวหารหาจำนวนรอบ:</label>
+                    <label>ตัวหารหาจำนวนรอบ (ต่อวัน):</label>
                     <input type="number" id="v_bookingPerRound" value="68.7" class="w-full mt-1 border rounded p-1" oninput="calculateAll()">
                 </div>
             </div>
@@ -67,7 +67,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-center">
             <div class="card p-4">
-                <p class="text-slate-500 text-xs font-bold uppercase">จำนวนรอบทั้งหมด (เดือน)</p>
+                <p class="text-slate-500 text-xs font-bold uppercase">จำนวนรอบทั้งหมด (รายวัน)</p>
                 <h2 id="out_totalRounds" class="text-2xl font-black text-slate-700 mt-1">0</h2>
                 <p class="text-xs text-red-500 mt-1" id="out_overflowInfo">ล้น 0 รอบ/วัน</p>
             </div>
@@ -106,7 +106,7 @@
     </div>
 
     <script>
-        // Master Task List (ปรับ AI Default เป๊ะตามสั่งทุกตัว)
+        // Master Task List (ปรับ AI Default ตามที่สั่งทุกตัวแบบเป๊ะๆ)
         const tasks = [
             { name: "เช็คเมลล์ (อ่าน + คัดกรอง)", unitType: "case", occurrence: 100, baseTime: 2, aiPercent: 100 },
             { name: "ลง Booking (จัดลงรอบ)", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 95 },
@@ -144,17 +144,18 @@
             const guides = parseFloat(document.getElementById('v_guides').value) || 0;
             const guideCap = parseFloat(document.getElementById('v_guideCap').value) || 0;
 
-            // 2. Global Calculations (ตบสมการ Dimensions ใหม่ให้ถูก)
+            // 2. Global Calculations (แก้จุดบอดสมการให้ตรงตามผู้ใช้)
             const hourlyRate = salary / (26 * workHours); 
             
-            const totalRounds = bookings / bookingPerRound; 
-            const dailyRounds = totalRounds / totalDays; // ทำให้เป็นรายวันก่อนเทียบ Capacity
+            // หาจำนวนรอบ "ต่อวัน" ก่อนเลย โดยไม่เอาไปหารจำนวนวันซ้ำ
+            const dailyRounds = bookings / bookingPerRound; 
+            const totalRoundsInMonth = dailyRounds * totalDays; 
             
             const maxCapacityPerDay = guides * guideCap; 
             const overflowPerDay = Math.max(0, dailyRounds - maxCapacityPerDay); 
-            const totalOverflows = overflowPerDay * totalDays; // เอาส่วนที่ล้นต่อวัน x จำนวนวัน
+            const totalOverflowsInMonth = overflowPerDay * totalDays; 
 
-            document.getElementById('out_totalRounds').innerText = Math.round(totalRounds).toLocaleString();
+            document.getElementById('out_totalRounds').innerText = dailyRounds.toFixed(1) + ' รอบ/วัน';
             document.getElementById('out_overflowInfo').innerText = 
                 `ไกด์รับได้ ${maxCapacityPerDay} รอบ/วัน | ล้น ${overflowPerDay.toFixed(1)} รอบ/วัน`;
 
@@ -167,9 +168,10 @@
             tasks.forEach((task, index) => {
                 let baseVolume = 0;
                 
+                // ใช้ยอดรายเดือนเป็นฐานสำหรับเวลาทำงานรวม
                 if(task.unitType === 'case') baseVolume = bookings;
-                else if(task.unitType === 'round') baseVolume = totalRounds;
-                else if(task.unitType === 'overflow') baseVolume = totalOverflows;
+                else if(task.unitType === 'round') baseVolume = totalRoundsInMonth;
+                else if(task.unitType === 'overflow') baseVolume = totalOverflowsInMonth;
                 else if(task.unitType === 'day') baseVolume = totalDays;
                 else if(task.unitType === 'month') baseVolume = 1;
 
