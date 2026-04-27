@@ -20,7 +20,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-8 border-b pb-4">
             <h1 class="text-3xl font-bold text-slate-800">WanderSiam: Ops Utilization & ROI</h1>
-            <p class="text-slate-500">ปรับตัวแปรด้านล่างเพื่อดูผลกระทบแบบ Real-time (V.3 - อัปเดตโอกาสเกิดงาน)</p>
+            <p class="text-slate-500">ปรับตัวแปรด้านล่างเพื่อดูผลกระทบแบบ Real-time (V.4 - แก้สมการไกด์ล้น + อัปเดตค่าเริ่มต้น AI)</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -29,7 +29,7 @@
                 <div class="mt-2 text-sm">
                     <label>ยอดจองทั้งหมด (เคส):</label>
                     <input type="number" id="v_bookings" value="5739" class="w-full mt-1 border rounded p-1 mb-2" oninput="calculateAll()">
-                    <label>ค่าเฉลี่ย Booking/รอบ:</label>
+                    <label>ตัวหารหาจำนวนรอบ (ค่าเฉลี่ย):</label>
                     <input type="number" id="v_bookingPerRound" value="68.7" class="w-full mt-1 border rounded p-1" oninput="calculateAll()">
                 </div>
             </div>
@@ -91,7 +91,7 @@
                     <tr>
                         <th class="p-3">รายการงาน (Tasks)</th>
                         <th class="p-3">หน่วย</th>
-                        <th class="p-3 text-center bg-rose-600">โอกาสเกิด (%)<br><span class="text-[10px] font-normal">เช่น มาช้าแค่ 5%</span></th>
+                        <th class="p-3 text-center bg-rose-600">โอกาสเกิด (%)</th>
                         <th class="p-3 text-center">ปริมาณงาน<br>(หลังคูณ %)</th>
                         <th class="p-3 text-center">เวลาฐาน<br>(นาที)</th>
                         <th class="p-3 text-center bg-indigo-600">AI ทำ (%)</th>
@@ -106,22 +106,22 @@
     </div>
 
     <script>
-        // Master Task List (อัปเดตตามที่พัคบอก)
+        // Master Task List
         const tasks = [
             { name: "เช็คเมลล์ (อ่าน + คัดกรอง)", unitType: "case", occurrence: 100, baseTime: 2, aiPercent: 100 },
-            { name: "ลง Booking (จัดลงรอบ)", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 90 },
-            { name: "คอนเฟิร์มทัวร์", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 100 },
-            { name: "นัดเวลารับ-ส่ง (ทัวร์)", unitType: "case", occurrence: 10, baseTime: 7, aiPercent: 90 },
-            { name: "เตรียมใบงานพรุ่งนี้", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 100 },
-            { name: "ตามลูกค้า (มาช้า)", unitType: "case", occurrence: 5, baseTime: 5, aiPercent: 50 },
-            { name: "ตอบแชท/จัดการไกด์", unitType: "round", occurrence: 100, baseTime: 8, aiPercent: 50 },
-            { name: "จองตุ๊กตุ๊ก", unitType: "round", occurrence: 100, baseTime: 5, aiPercent: 90 },
-            { name: "ตอบเมลล์ยาว/เสนอราคา", unitType: "case", occurrence: 4, baseTime: 5, aiPercent: 30 },
-            { name: "โทรหาลูกค้า (แก้ปัญหา)", unitType: "case", occurrence: 5, baseTime: 4, aiPercent: 10 },
-            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", occurrence: 100, baseTime: 10, aiPercent: 100 },
-            { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", occurrence: 100, baseTime: 30, aiPercent: 50 },
-            { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", occurrence: 100, baseTime: 30, aiPercent: 80 },
-            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 100 }
+            { name: "ลง Booking (จัดลงรอบ)", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 95 },
+            { name: "คอนเฟิร์มทัวร์", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 75 },
+            { name: "นัดเวลารับ-ส่ง (ทัวร์)", unitType: "case", occurrence: 10, baseTime: 7, aiPercent: 0 },
+            { name: "เตรียมใบงานพรุ่งนี้", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 40 },
+            { name: "ตามลูกค้า (มาช้า)", unitType: "case", occurrence: 5, baseTime: 5, aiPercent: 0 },
+            { name: "ตอบแชท/จัดการไกด์", unitType: "round", occurrence: 100, baseTime: 8, aiPercent: 0 },
+            { name: "จองตุ๊กตุ๊ก", unitType: "round", occurrence: 100, baseTime: 5, aiPercent: 0 },
+            { name: "ตอบเมลล์ยาว/เสนอราคา", unitType: "case", occurrence: 4, baseTime: 5, aiPercent: 0 },
+            { name: "โทรหาลูกค้า (แก้ปัญหา)", unitType: "case", occurrence: 5, baseTime: 4, aiPercent: 0 },
+            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", occurrence: 100, baseTime: 10, aiPercent: 0 },
+            { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", occurrence: 100, baseTime: 30, aiPercent: 0 },
+            { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", occurrence: 100, baseTime: 30, aiPercent: 40 },
+            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 0 }
         ];
 
         function getUnitBadge(type) {
@@ -144,13 +144,15 @@
             const guides = parseFloat(document.getElementById('v_guides').value) || 0;
             const guideCap = parseFloat(document.getElementById('v_guideCap').value) || 0;
 
-            // 2. Global Calculations
+            // 2. Global Calculations (Corrected Logic)
             const hourlyRate = salary / (26 * workHours); 
-            const totalRounds = bookings / bookingPerRound;
-            const dailyRounds = totalRounds / totalDays;
-            const maxCapacityPerDay = guides * guideCap;
-            const overflowPerDay = Math.max(0, dailyRounds - maxCapacityPerDay);
-            const totalOverflows = overflowPerDay * totalDays;
+            
+            const dailyRounds = bookings / bookingPerRound; // รอบต่อวัน (เช่น 5739 / 68.7 = 83.5)
+            const totalRounds = dailyRounds * totalDays;    // รอบทั้งเดือน (เช่น 83.5 * 30 = 2505)
+            
+            const maxCapacityPerDay = guides * guideCap;    // รับได้สูงสุดต่อวัน (เช่น 30 * 2.5 = 75)
+            const overflowPerDay = Math.max(0, dailyRounds - maxCapacityPerDay); // ส่วนที่ล้นต่อวัน
+            const totalOverflows = overflowPerDay * totalDays; // ส่วนที่ล้นรวมทั้งเดือน
 
             document.getElementById('out_totalRounds').innerText = Math.round(totalRounds).toLocaleString();
             document.getElementById('out_overflowInfo').innerText = 
@@ -165,14 +167,12 @@
             tasks.forEach((task, index) => {
                 let baseVolume = 0;
                 
-                // กำหนดตัวตั้งต้นตามหน่วย
                 if(task.unitType === 'case') baseVolume = bookings;
                 else if(task.unitType === 'round') baseVolume = totalRounds;
                 else if(task.unitType === 'overflow') baseVolume = totalOverflows;
                 else if(task.unitType === 'day') baseVolume = totalDays;
                 else if(task.unitType === 'month') baseVolume = 1;
 
-                // หักลบด้วยเปอร์เซ็นต์โอกาสเกิด (Occurrence Rate) ที่มึงบอก
                 const actualVolume = baseVolume * (task.occurrence / 100);
 
                 const totalTaskMins = actualVolume * task.baseTime;
