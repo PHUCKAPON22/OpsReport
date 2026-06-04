@@ -15,6 +15,11 @@
         .bg-overflow { background-color: #fee2e2; color: #b91c1c; }
         .bg-time { background-color: #dcfce7; color: #15803d; }
         input[type="number"] { font-weight: 700; color: #1e293b; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .row-animate { animation: slideIn 0.25s ease; }
     </style>
 </head>
 <body class="p-4 md:p-6">
@@ -103,8 +108,18 @@
             </div>
         </div>
 
-        <!-- Main Scorecards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <!-- Tab Buttons -->
+        <div class="flex gap-3 mb-4">
+            <button id="tab-all" onclick="switchTab('all')" class="flex-1 py-4 rounded-xl font-bold text-sm shadow-sm transition-all duration-200 bg-indigo-600 text-white">
+                📊 ทั้งหมด
+            </button>
+            <button id="tab-ops" onclick="switchTab('ops')" class="flex-1 py-4 rounded-xl font-bold text-sm shadow-sm transition-all duration-200 bg-white text-slate-500 border border-slate-200 hover:border-indigo-300">
+                👤 ทีม Ops
+            </button>
+        </div>
+
+        <!-- Main Scorecards (Tab: ทั้งหมด) -->
+        <div id="scorecards-all" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="card p-5 text-center bg-white">
                 <p class="text-slate-400 text-[10px] font-800 uppercase tracking-widest">Net Profit จาก AI</p>
                 <h2 id="out_netSavings" class="text-3xl font-800 text-emerald-600 mt-1">฿0</h2>
@@ -127,10 +142,69 @@
             </div>
         </div>
 
+        <!-- Ops Scorecards (Tab: ทีม Ops) -->
+        <div id="scorecards-ops" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="card p-5 text-center bg-white border-t-4 border-blue-500">
+                <p class="text-slate-400 text-[10px] font-800 uppercase tracking-widest">ทีม Ops ทำงาน</p>
+                <h2 id="ops_hoursPerPerson" class="text-3xl font-800 text-blue-600 mt-1">0 ชม.</h2>
+                <p class="text-[10px] text-slate-400 mt-1">ต่อคน ต่อวัน (เฉลี่ย)</p>
+            </div>
+            <div class="card p-5 text-center bg-white border-t-4 border-orange-500">
+                <p class="text-slate-400 text-[10px] font-800 uppercase tracking-widest">ภาระงานทีม Ops</p>
+                <h2 id="ops_burden" class="text-3xl font-800 text-orange-500 mt-1">0%</h2>
+                <p class="text-[10px] text-slate-400 mt-1">ของวัน 8 ชม. ถูกใช้ไป</p>
+            </div>
+            <div class="card p-5 text-center bg-emerald-600 text-white">
+                <p class="text-emerald-100 text-[10px] font-800 uppercase tracking-widest">เวลาว่าง/คน/วัน</p>
+                <h2 id="ops_freeHours" class="text-3xl font-800 mt-1">0 ชม.</h2>
+                <p class="text-emerald-200 text-[10px] mt-1 italic">เหลือไปทำงานอื่น</p>
+            </div>
+            <div class="card p-5 text-center bg-white border-2 border-slate-900">
+                <p class="text-slate-500 text-[10px] font-800 uppercase tracking-widest">FTE ที่ต้องการจริง</p>
+                <h2 id="ops_fteNeeded" class="text-3xl font-800 text-slate-900 mt-1">0 คน</h2>
+                <p id="ops_fteInfo" class="text-[10px] text-slate-400 mt-1">จาก 0 คนในทีม</p>
+            </div>
+        </div>
+
+        <!-- Add Task Form -->
+        <div class="card p-4 mb-4 border-t-4 border-indigo-400 bg-indigo-50/30">
+            <p class="text-[11px] font-bold text-indigo-500 uppercase mb-3">+ เพิ่ม Task ใหม่</p>
+            <div class="flex flex-wrap gap-2 items-end">
+                <div class="flex-1 min-w-[160px]">
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">ชื่องาน</label>
+                    <input type="text" id="new_name" placeholder="เช่น โทรยืนยันลูกค้า" onkeydown="if(event.key==='Enter') addTask()" class="w-full border rounded p-2 text-sm focus:ring-2 ring-indigo-200 outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">หน่วย</label>
+                    <select id="new_unit" class="border rounded p-2 text-sm focus:ring-2 ring-indigo-200 outline-none bg-white">
+                        <option value="case">ต่อเคส</option>
+                        <option value="round">ต่อรอบ</option>
+                        <option value="day">ต่อวัน</option>
+                        <option value="month">ต่อเดือน</option>
+                        <option value="overflow">ล้นรอบ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">โอกาสเกิด (%)</label>
+                    <input type="number" id="new_occurrence" value="100" class="w-20 border rounded p-2 text-sm focus:ring-2 ring-rose-200 outline-none text-center text-rose-700">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">เวลา (นาที)</label>
+                    <input type="number" id="new_baseTime" placeholder="5" class="w-20 border rounded p-2 text-sm focus:ring-2 ring-slate-200 outline-none text-center">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 block mb-1">AI ช่วย (%)</label>
+                    <input type="number" id="new_aiPercent" value="0" class="w-20 border rounded p-2 text-sm focus:ring-2 ring-indigo-200 outline-none text-center text-indigo-700">
+                </div>
+                <button onclick="addTask()" class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded hover:bg-indigo-500 transition-colors">+ เพิ่ม</button>
+            </div>
+        </div>
+
         <!-- Task Table -->
         <div class="card overflow-hidden">
-            <div class="bg-slate-900 px-4 py-3 border-b border-slate-800">
+            <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
                 <h3 class="text-white text-xs font-800 tracking-wider uppercase">Operational Task Analysis</h3>
+                <span id="hiddenCount" class="text-slate-400 text-[11px]"></span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm border-collapse">
@@ -143,6 +217,7 @@
                             <th class="p-3 text-center text-[10px] font-800 uppercase bg-indigo-50 text-indigo-600">AI ช่วย (%)</th>
                             <th class="p-3 text-right text-[10px] font-800 uppercase bg-green-50">เวลาประหยัด (ด.)</th>
                             <th class="p-3 text-right text-[10px] font-800 uppercase bg-orange-50">เวลาคนทำ (ด.)</th>
+                            <th id="th-ai-col" class="p-3 text-center text-[10px] font-800 uppercase w-10">AI</th>
                         </tr>
                     </thead>
                     <tbody id="taskBody" class="divide-y divide-slate-100">
@@ -168,14 +243,120 @@
             { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", occurrence: 100, baseTime: 10, aiPercent: 0 },
             { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", occurrence: 100, baseTime: 30, aiPercent: 0 },
             { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", occurrence: 100, baseTime: 30, aiPercent: 40 },
-            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 0 }
+            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 0 },
+            { name: "เก็บข้อมูล Review Guide", unitType: "day", occurrence: 100, baseTime: 10, aiPercent: 0 }
         ];
+
+        tasks.forEach(t => { t.hidden = false; t._justMoved = false; });
+
+        let _summaryOpsMins = 0;
+        let _summaryCapacityMins = 0;
+        let _summaryOpDays = 30;
+        let currentTab = 'all';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const allEl = document.getElementById('scorecards-all');
+            const opsEl = document.getElementById('scorecards-ops');
+            const tabAll = document.getElementById('tab-all');
+            const tabOps = document.getElementById('tab-ops');
+            const thAI = document.getElementById('th-ai-col');
+
+            if (tab === 'all') {
+                allEl.classList.remove('hidden');
+                opsEl.classList.add('hidden');
+                tabAll.className = 'flex-1 py-4 rounded-xl font-bold text-sm shadow-sm transition-all duration-200 bg-indigo-600 text-white';
+                tabOps.className = 'flex-1 py-4 rounded-xl font-bold text-sm shadow-sm transition-all duration-200 bg-white text-slate-500 border border-slate-200 hover:border-indigo-300';
+                // ซ่อน column 🤖
+                if (thAI) thAI.style.display = 'none';
+                tasks.forEach((_, i) => {
+                    const btn = document.getElementById(`hideBtn-${i}`);
+                    if (btn) btn.parentElement.style.display = 'none';
+                });
+                // คืน row ทุกอันในลำดับเดิม + ลบ separator + ลบ summary
+                const tbody = document.getElementById('taskBody');
+                const sep = document.getElementById('ai-separator');
+                const sum = document.getElementById('human-summary-row');
+                if (sep) sep.remove();
+                if (sum) sum.remove();
+                tasks.forEach((task, i) => {
+                    const row = document.getElementById(`row-${i}`);
+                    if (row) { row.style.opacity = ''; tbody.appendChild(row); }
+                    const nameCell = document.getElementById(`name-${i}`);
+                    if (nameCell) nameCell.style.textDecoration = '';
+                });
+            } else {
+                allEl.classList.add('hidden');
+                opsEl.classList.remove('hidden');
+                tabAll.className = 'flex-1 py-4 rounded-xl font-bold text-sm shadow-sm transition-all duration-200 bg-white text-slate-500 border border-slate-200 hover:border-indigo-300';
+                tabOps.className = 'flex-1 py-4 rounded-xl font-bold text-sm shadow-sm transition-all duration-200 bg-indigo-600 text-white';
+                // แสดง column 🤖
+                if (thAI) thAI.style.display = '';
+                tasks.forEach((_, i) => {
+                    const btn = document.getElementById(`hideBtn-${i}`);
+                    if (btn) btn.parentElement.style.display = '';
+                });
+                reorderRows();
+            }
+            calculateAll();
+        }
+
+        function toggleHide(index) {
+            tasks[index].hidden = !tasks[index].hidden;
+            tasks[index]._justMoved = true;
+            calculateAll();
+            reorderRows();
+        }
+
+        function reorderRows() {
+            const tbody = document.getElementById('taskBody');
+            const humanRows = [];
+            const aiRows = [];
+
+            tasks.forEach((task, i) => {
+                const row = document.getElementById(`row-${i}`);
+                if (!row) return;
+                if (task.hidden) aiRows.push({ row, fresh: task._justMoved });
+                else humanRows.push(row);
+                task._justMoved = false;
+            });
+
+            // remove old separator
+            const oldSep = document.getElementById('ai-separator');
+            if (oldSep) oldSep.remove();
+
+            humanRows.forEach(row => tbody.appendChild(row));
+
+            if (aiRows.length > 0) {
+                const sep = document.createElement('tr');
+                sep.id = 'ai-separator';
+                sep.innerHTML = `<td colspan="8" class="px-4 py-2 bg-slate-800 text-slate-300 text-[11px] font-bold uppercase tracking-widest text-center border-y-2 border-slate-600">🤖 AI ดูแลแล้ว — ${aiRows.length} task</td>`;
+                tbody.appendChild(sep);
+                aiRows.forEach(({ row, fresh }) => {
+                    if (fresh) { row.classList.remove('row-animate'); void row.offsetWidth; row.classList.add('row-animate'); }
+                    tbody.appendChild(row);
+                });
+            }
+
+            // Summary row
+            const oldSum = document.getElementById('human-summary-row');
+            if (oldSum) oldSum.remove();
+            const minsPerDay = _summaryOpDays > 0 ? (_summaryOpsMins / _summaryOpDays).toFixed(1) : 0;
+            const utilPct = _summaryCapacityMins > 0 ? ((_summaryOpsMins / _summaryCapacityMins) * 100).toFixed(1) : 0;
+            const sumRow = document.createElement('tr');
+            sumRow.id = 'human-summary-row';
+            sumRow.innerHTML = `<td colspan="8" class="px-4 py-3 bg-emerald-50 border-t-2 border-emerald-300">
+                <span class="text-emerald-800 font-bold text-sm">👤 Human ยังแบก: ${parseFloat(minsPerDay).toLocaleString()} นาที/วัน</span>
+                <span class="text-slate-500 text-xs ml-4">Utilization ${utilPct}% ของ capacity ทีม</span>
+            </td>`;
+            tbody.appendChild(sumRow);
+        }
 
         function initTable() {
             const tbody = document.getElementById('taskBody');
             tbody.innerHTML = tasks.map((task, index) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-3 font-semibold text-slate-700 text-[13px]">${task.name}</td>
+                <tr id="row-${index}" class="hover:bg-slate-50 transition-all duration-200">
+                    <td class="p-3 text-[13px]"><span id="name-${index}" class="font-semibold text-slate-700">${task.name}</span></td>
                     <td class="p-3">${getUnitBadge(task.unitType)}</td>
                     <td class="p-3 bg-rose-50/30">
                         <input type="number" value="${task.occurrence}" class="w-16 border rounded p-1 text-center text-rose-700 focus:ring-2 ring-rose-200 outline-none" oninput="updateTaskValue(${index}, 'occurrence', this.value)">
@@ -188,6 +369,9 @@
                     </td>
                     <td id="saved-${index}" class="p-3 text-right text-green-600 font-bold tabular-nums">0</td>
                     <td id="ops-${index}" class="p-3 text-right text-orange-600 font-bold tabular-nums">0</td>
+                    <td class="p-3 text-center">
+                        <button id="hideBtn-${index}" onclick="toggleHide(${index})" title="กดเพื่อ mark ว่า AI ทำ 100% แล้ว" class="text-lg leading-none opacity-30 hover:opacity-100 transition-opacity">🤖</button>
+                    </td>
                 </tr>
             `).join('');
             calculateAll();
@@ -231,7 +415,24 @@
             let totalOpsMins = 0;
             let totalPossibleMins = 0;
 
+            let hiddenCount = 0;
             tasks.forEach((task, index) => {
+                const row = document.getElementById(`row-${index}`);
+                const nameCell = document.getElementById(`name-${index}`);
+                const btn = document.getElementById(`hideBtn-${index}`);
+
+                if (task.hidden && currentTab === 'ops') {
+                    hiddenCount++;
+                    if (row) row.style.opacity = '0.35';
+                    if (nameCell) nameCell.style.textDecoration = 'line-through';
+                    if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; btn.title = 'กดเพื่อเรียก task กลับ'; }
+                    return;
+                } else if (currentTab === 'ops') {
+                    if (row) row.style.opacity = '';
+                    if (nameCell) nameCell.style.textDecoration = '';
+                    if (btn) { btn.style.opacity = ''; btn.style.pointerEvents = ''; btn.title = 'กดเพื่อ mark ว่า AI ทำ 100% แล้ว'; }
+                }
+
                 let volume = 0;
                 if(task.unitType === 'case') volume = bookings;
                 else if(task.unitType === 'round') volume = dailyRounds * opDays;
@@ -251,6 +452,28 @@
                 document.getElementById(`saved-${index}`).innerText = Math.round(saved).toLocaleString();
                 document.getElementById(`ops-${index}`).innerText = Math.round(ops).toLocaleString();
             });
+
+            _summaryOpsMins = totalOpsMins;
+            _summaryCapacityMins = opsCount * workDays * workHours * 60;
+            _summaryOpDays = opDays;
+
+            // Ops Tab Cards
+            const hoursPerPersonPerDay = opsCount > 0 && workDays > 0
+                ? (totalOpsMins / opsCount / workDays / 60) : 0;
+            const burdenPct = workHours > 0 ? (hoursPerPersonPerDay / workHours) * 100 : 0;
+            const freeHours = Math.max(0, workHours - hoursPerPersonPerDay);
+            const fteNeeded = _summaryCapacityMins > 0
+                ? (totalOpsMins / (workDays * workHours * 60)) : 0;
+
+            document.getElementById('ops_hoursPerPerson').innerText = hoursPerPersonPerDay.toFixed(1) + ' ชม.';
+            document.getElementById('ops_burden').innerText = burdenPct.toFixed(1) + '%';
+            const burdenEl = document.getElementById('ops_burden');
+            burdenEl.className = burdenPct > 80
+                ? 'text-3xl font-800 text-rose-600 mt-1'
+                : (burdenPct > 50 ? 'text-3xl font-800 text-orange-500 mt-1' : 'text-3xl font-800 text-orange-500 mt-1');
+            document.getElementById('ops_freeHours').innerText = freeHours.toFixed(1) + ' ชม.';
+            document.getElementById('ops_fteNeeded').innerText = fteNeeded.toFixed(1) + ' คน';
+            document.getElementById('ops_fteInfo').innerText = `จาก ${opsCount} คนในทีม`;
 
             // Summary Stats
             const savedHours = totalAISavedMins / 60;
@@ -279,7 +502,35 @@
             utilEl.className = utilization > 100 ? "text-3xl font-800 text-rose-600 mt-1" : (utilization > 80 ? "text-3xl font-800 text-orange-500 mt-1" : "text-3xl font-800 text-slate-900 mt-1");
         }
 
-        window.onload = initTable;
+        function addTask() {
+            const name = document.getElementById('new_name').value.trim();
+            if (!name) { document.getElementById('new_name').focus(); return; }
+            const unitType = document.getElementById('new_unit').value;
+            const occurrence = parseFloat(document.getElementById('new_occurrence').value) || 100;
+            const baseTime = parseFloat(document.getElementById('new_baseTime').value) || 5;
+            const aiPercent = parseFloat(document.getElementById('new_aiPercent').value) || 0;
+
+            tasks.push({ name, unitType, occurrence, baseTime, aiPercent, hidden: false, _justMoved: false });
+            initTable();
+            reorderRows();
+
+            document.getElementById('new_name').value = '';
+            document.getElementById('new_occurrence').value = '';
+            document.getElementById('new_baseTime').value = '';
+            document.getElementById('new_aiPercent').value = '';
+            document.getElementById('new_name').focus();
+        }
+
+        window.onload = () => {
+            initTable();
+            // Tab 1 เป็น default — ซ่อน column 🤖 ตั้งแต่ต้น
+            const thAI = document.getElementById('th-ai-col');
+            if (thAI) thAI.style.display = 'none';
+            tasks.forEach((_, i) => {
+                const btn = document.getElementById(`hideBtn-${i}`);
+                if (btn) btn.parentElement.style.display = 'none';
+            });
+        };
     </script>
 </body>
 </html>
