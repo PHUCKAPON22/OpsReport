@@ -41,10 +41,10 @@
                 <div class="space-y-3">
                     <div>
                         <label class="text-[11px] font-bold">ยอดจองรวม (เคส/เดือน):</label>
-                        <input type="number" id="v_bookings" value="3428" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-indigo-200 outline-none" oninput="calculateAll()">
+                        <input type="number" id="v_bookings" value="5000" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-indigo-200 outline-none" oninput="calculateAll()">
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold">Booking ต่อรอบ (ตัวหาร):</label>
+                        <label class="text-[11px] font-bold">รอบต่อ 100 เคส (%):</label>
                         <input type="number" id="v_bookingPerRound" value="68.7" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-indigo-200 outline-none" oninput="calculateAll()">
                     </div>
                     <div>
@@ -64,6 +64,10 @@
                     <div>
                         <label class="text-[11px] font-bold text-emerald-700">วันทำงาน/คน (วัน/เดือน):</label>
                         <input type="number" id="v_workingDays" value="26" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-emerald-200 outline-none" oninput="calculateAll()">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-emerald-700">เป้า Utilization (%):</label>
+                        <input type="number" id="v_targetUtil" value="75" min="1" max="100" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-emerald-200 outline-none" oninput="calculateAll()">
                     </div>
                 </div>
             </div>
@@ -87,7 +91,7 @@
                 <div class="space-y-3">
                     <div>
                         <label class="text-[11px] font-bold">ไกด์ในมือ (คน):</label>
-                        <input type="number" id="v_guides" value="30" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-orange-200 outline-none" oninput="calculateAll()">
+                        <input type="number" id="v_guides" value="50" class="w-full mt-1 border rounded p-2 text-sm focus:ring-2 ring-orange-200 outline-none" oninput="calculateAll()">
                     </div>
                     <div>
                         <label class="text-[11px] font-bold">รับงาน (รอบ/คน/วัน):</label>
@@ -101,7 +105,7 @@
                 <div class="space-y-3">
                     <div>
                         <label class="text-[11px] font-bold">ค่าเช่าระบบ/API (บาท/ด.):</label>
-                        <input type="number" id="v_aiMonthlyCost" value="1500" class="w-full mt-1 border border-rose-200 rounded p-2 text-sm focus:ring-2 ring-rose-200 outline-none" oninput="calculateAll()">
+                        <input type="number" id="v_aiMonthlyCost" value="416" class="w-full mt-1 border border-rose-200 rounded p-2 text-sm focus:ring-2 ring-rose-200 outline-none" oninput="calculateAll()">
                     </div>
                     <p class="text-[10px] text-rose-400 italic font-medium">*รวมค่า Token และค่า Subscription รายเดือน</p>
                 </div>
@@ -230,24 +234,30 @@
 
     <script>
         const tasks = [
-            { name: "เช็คเมลล์ (อ่าน + คัดกรอง)", unitType: "case", occurrence: 100, baseTime: 2, aiPercent: 100 },
-            { name: "ลง Booking (จัดลงรอบ)", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 95 },
-            { name: "คอนเฟิร์มทัวร์", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 75 },
-            { name: "นัดเวลารับ-ส่ง (ทัวร์)", unitType: "case", occurrence: 10, baseTime: 7, aiPercent: 0 },
-            { name: "เตรียมใบงานพรุ่งนี้", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 40 },
-            { name: "ตามลูกค้า (มาช้า)", unitType: "case", occurrence: 5, baseTime: 5, aiPercent: 0 },
-            { name: "ตอบแชท/จัดการไกด์", unitType: "round", occurrence: 20, baseTime: 8, aiPercent: 0 },
-            { name: "จองตุ๊กตุ๊ก", unitType: "round", occurrence: 20, baseTime: 5, aiPercent: 0 },
-            { name: "ตอบเมลล์ยาว/เสนอราคา", unitType: "case", occurrence: 4, baseTime: 5, aiPercent: 0 },
-            { name: "โทรหาลูกค้า (แก้ปัญหา)", unitType: "case", occurrence: 5, baseTime: 4, aiPercent: 0 },
-            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", occurrence: 100, baseTime: 10, aiPercent: 0 },
-            { name: "หาไกด์เสริม (ดีลราคา)", unitType: "overflow", occurrence: 100, baseTime: 30, aiPercent: 0 },
-            { name: "ทำชีตเงิน ส่งบัญชี", unitType: "day", occurrence: 100, baseTime: 30, aiPercent: 40 },
-            { name: "ส่งข้อมูลเข้าพอร์ทัลประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 0 },
-            { name: "เก็บข้อมูล Review Guide", unitType: "day", occurrence: 100, baseTime: 10, aiPercent: 0 }
+            // ── AI ดูแลแล้ว (hidden) ─────────────────────────────────
+            // merge เช็คเมลล์(2นาที,100%AI) + ลง Booking(3นาที,97%AI) → 5นาที, 100%AI
+            { name: "เช็คเมลล์ + ลง Booking", unitType: "case", occurrence: 100, baseTime: 5, aiPercent: 100, hidden: true },
+            // merge ส่งใบงานไกด์(2นาที,60%AI) + เตรียมใบงานวันถัดไป(2นาที,40%AI) → 4นาที, 100%AI
+            { name: "เตรียมใบงานของวันนี้และวันถัดไปให้ไกด์", unitType: "round", occurrence: 100, baseTime: 4, aiPercent: 100, hidden: true },
+            // ทำชีตเงิน → AI 100%
+            { name: "ทำใบเงินส่งไกด์/ทีมบัญชี", unitType: "day", occurrence: 100, baseTime: 30, aiPercent: 100, hidden: true },
+
+            // ── งานคน ────────────────────────────────────────────────
+            { name: "คอนเฟิร์มทัวร์", unitType: "case", occurrence: 100, baseTime: 3, aiPercent: 75, hidden: false },
+            { name: "เตรียมใบงานของวันนี้และวันถัดไปให้ทีมรถ", unitType: "round", occurrence: 100, baseTime: 2, aiPercent: 0, hidden: false },
+            { name: "จัดทีมรถ (จับคู่รถ-คน)", unitType: "round", occurrence: 100, baseTime: 10, aiPercent: 0, hidden: false },
+            { name: "นัดเวลารับ (ทัวร์รับ-ส่ง)", unitType: "case", occurrence: 10, baseTime: 7, aiPercent: 0, hidden: false },
+            { name: "จองตุ๊กตุ๊ก", unitType: "round", occurrence: 20, baseTime: 5, aiPercent: 0, hidden: false },
+            { name: "ส่งประกัน", unitType: "month", occurrence: 100, baseTime: 60, aiPercent: 0, hidden: false },
+            { name: "เก็บข้อมูล Review Guide", unitType: "day", occurrence: 100, baseTime: 10, aiPercent: 0, hidden: false },
+            { name: "ตอบแชทไกด์/ลูกค้า", unitType: "round", occurrence: 20, baseTime: 8, aiPercent: 0, hidden: false },
+            // 10นาที/ไกด์ ÷ 2.5รอบ/ไกด์ = 4นาที/รอบล้น
+            { name: "ติดต่อประสานงานหาไกด์เพิ่ม (ไกด์ขาด)", unitType: "overflow", occurrence: 100, baseTime: 4, aiPercent: 0, hidden: false },
+            { name: "ตามลูกค้า (ตามเวลาทัวร์)", unitType: "case", occurrence: 15, baseTime: 7, aiPercent: 0, hidden: false },
+            { name: "รับสายลูกค้า (แก้ปัญหา)", unitType: "case", occurrence: 5, baseTime: 4, aiPercent: 0, hidden: false }
         ];
 
-        tasks.forEach(t => { t.hidden = false; t._justMoved = false; });
+        tasks.forEach(t => { if (t.hidden === undefined) t.hidden = false; t._justMoved = false; });
 
         let _summaryOpsMins = 0;
         let _summaryCapacityMins = 0;
@@ -394,6 +404,7 @@
             
             const opsCount = parseFloat(document.getElementById('v_opsCount').value) || 1;
             const workDays = parseFloat(document.getElementById('v_workingDays').value) || 1;
+            const targetUtil = (parseFloat(document.getElementById('v_targetUtil').value) || 75) / 100;
             
             const salary = parseFloat(document.getElementById('v_salary').value) || 0;
             const workHours = parseFloat(document.getElementById('v_hours').value) || 1;
@@ -403,13 +414,14 @@
             const aiMonthlyCost = parseFloat(document.getElementById('v_aiMonthlyCost').value) || 0;
 
             const hourlyRate = salary / (workDays * workHours);
-            const dailyRounds = bookings / bpr;
+            const monthlyRounds = bookings * (bpr / 100);
+            const dailyRounds = monthlyRounds / opDays;
             const maxCap = guides * guideCap;
             const dailyOverflow = Math.max(0, dailyRounds - maxCap);
-            
+
             document.getElementById('out_dailyRounds').innerText = dailyRounds.toFixed(1) + ' รอบ/วัน';
             const overflowEl = document.getElementById('out_overflow');
-            overflowEl.innerText = `ไกด์รับได้ ${maxCap} | ล้น ${dailyOverflow.toFixed(1)} รอบ/วัน`;
+            overflowEl.innerText = `ไกด์รับได้ ${maxCap}/วัน | ล้น ${dailyOverflow.toFixed(1)} รอบ/วัน`;
 
             let totalAISavedMins = 0;
             let totalOpsMins = 0;
@@ -462,18 +474,20 @@
                 ? (totalOpsMins / opsCount / workDays / 60) : 0;
             const burdenPct = workHours > 0 ? (hoursPerPersonPerDay / workHours) * 100 : 0;
             const freeHours = Math.max(0, workHours - hoursPerPersonPerDay);
-            const fteNeeded = _summaryCapacityMins > 0
-                ? (totalOpsMins / (workDays * workHours * 60)) : 0;
+            // FTE ที่ target utilization: งานทั้งหมด ÷ (ความสามารถ 1 คน × เป้า%)
+            const fteNeeded = workDays > 0 && workHours > 0
+                ? (totalOpsMins / (workDays * workHours * 60 * targetUtil)) : 0;
 
             document.getElementById('ops_hoursPerPerson').innerText = hoursPerPersonPerDay.toFixed(1) + ' ชม.';
-            document.getElementById('ops_burden').innerText = burdenPct.toFixed(1) + '%';
             const burdenEl = document.getElementById('ops_burden');
-            burdenEl.className = burdenPct > 80
+            burdenEl.innerText = burdenPct.toFixed(1) + '%';
+            const targetPct = targetUtil * 100;
+            burdenEl.className = burdenPct > targetPct
                 ? 'text-3xl font-800 text-rose-600 mt-1'
-                : (burdenPct > 50 ? 'text-3xl font-800 text-orange-500 mt-1' : 'text-3xl font-800 text-orange-500 mt-1');
+                : (burdenPct > targetPct * 0.8 ? 'text-3xl font-800 text-orange-500 mt-1' : 'text-3xl font-800 text-emerald-600 mt-1');
             document.getElementById('ops_freeHours').innerText = freeHours.toFixed(1) + ' ชม.';
             document.getElementById('ops_fteNeeded').innerText = fteNeeded.toFixed(1) + ' คน';
-            document.getElementById('ops_fteInfo').innerText = `จาก ${opsCount} คนในทีม`;
+            document.getElementById('ops_fteInfo').innerText = `จาก ${opsCount} คนในทีม (เป้า ${Math.round(targetPct)}%)`;
 
             // Summary Stats
             const savedHours = totalAISavedMins / 60;
